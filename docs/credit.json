@@ -20,7 +20,7 @@
     }
   ],
   "paths": {
-    "/credit/calc": {
+    "/credit": {
       "get": {
         "tags": [
           "Credit"

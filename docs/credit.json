@@ -78,7 +78,9 @@
         "example": "30000",
         "schema": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "minimum": 10000,
+          "maximum": 50000
         }
       },
       "termInMonths": {
@@ -89,7 +91,9 @@
         "example": "21",
         "schema": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "minimum": 6,
+          "maximum": 36
         }
       },
       "ratingLevel": {
@@ -221,7 +225,9 @@
         "properties": {
           "lendingRateInPercent": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0,
+            "maximum": 10
           }
         }
       },

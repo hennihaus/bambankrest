@@ -1,15 +1,16 @@
 package de.hennihaus
 
+import de.hennihaus.configurations.configBackendModule
+import de.hennihaus.configurations.defaultModule
+import de.hennihaus.plugins.configureCors
+import de.hennihaus.plugins.configureDependencyInjection
+import de.hennihaus.plugins.configureErrorHandling
+import de.hennihaus.plugins.configureMonitoring
+import de.hennihaus.plugins.configureRouting
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.response.respond
-import io.ktor.server.routing.IgnoreTrailingSlash
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
+import org.koin.core.module.Module
 
 fun main() {
     embeddedServer(CIO, port = 8080) {
@@ -17,15 +18,10 @@ fun main() {
     }.start(wait = true)
 }
 
-fun Application.module() {
-    install(IgnoreTrailingSlash)
-    install(Routing) {
-        route("/") {
-            get("test") {
-                call.respond(
-                    message = "Hello Ktor",
-                )
-            }
-        }
-    }
+fun Application.module(vararg koinModules: Module = arrayOf(defaultModule, configBackendModule)) {
+    configureMonitoring()
+    configureDependencyInjection(koinModules = koinModules)
+    configureCors()
+    configureRouting()
+    configureErrorHandling()
 }

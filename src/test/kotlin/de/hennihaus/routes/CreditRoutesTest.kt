@@ -87,6 +87,7 @@ class CreditRoutesTest {
 
             val response = testClient.get(
                 urlString = """
+                    /v1
                     /credit
                     ?amountInEuros=$amountInEuros
                     &termInMonths=$termInMonths
@@ -125,6 +126,7 @@ class CreditRoutesTest {
 
             val response = testClient.get(
                 urlString = """
+                    /v1
                     /credit
                     ?termInMonths=$termInMonths
                     &ratingLevel=$ratingLevel
@@ -184,6 +186,7 @@ class CreditRoutesTest {
 
             val response = testClient.get(
                 urlString = """
+                    /v1
                     /credit
                     ?amountInEuros=$amountInEuros
                     &termInMonths=$termInMonths
@@ -221,6 +224,7 @@ class CreditRoutesTest {
 
             val response = testClient.get(
                 urlString = """
+                    /v1
                     /credit
                     ?amountInEuros=$amountInEuros
                     &termInMonths=$termInMonths

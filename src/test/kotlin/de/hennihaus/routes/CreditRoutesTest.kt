@@ -234,7 +234,9 @@ class CreditRoutesTest {
                 it.shouldBeEqualToIgnoringFields(
                     other = ErrorObjectMother.getInternalServerError(),
                     property = Error::dateTime,
+                    others = arrayOf(Error::message),
                 )
+                it.message shouldBe "${IllegalStateException()}"
                 it.dateTime.shouldBeEqualToIgnoringFields(
                     other = ErrorObjectMother.getInternalServerError().dateTime,
                     property = LocalDateTime::second,

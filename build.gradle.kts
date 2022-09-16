@@ -1,6 +1,5 @@
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
-import kotlinx.kover.api.CounterType
-import kotlinx.kover.api.DefaultIntellijEngine
+import kotlinx.kover.api.CoverageEngine
 import kotlinx.kover.api.VerificationValueType
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
@@ -121,7 +120,6 @@ val generateRatingModel by tasks.registering(GenerateTask::class) {
 
 ktlint {
     ignoreFailures.set(false)
-    baseline.set(file("config/ktlint/baseline.xml"))
     filter {
         exclude("**/generated/**")
     }
@@ -129,8 +127,7 @@ ktlint {
 
 detekt {
     config = files("config/detekt/detekt.yml")
-    baseline = file("config/detekt/detekt-baseline.xml")
-    source = files(
+    source = source.from(
         DetektExtension.DEFAULT_SRC_DIR_JAVA,
         DetektExtension.DEFAULT_TEST_SRC_DIR_JAVA,
         "src/integrationTest/java",
@@ -145,26 +142,15 @@ tasks.init {
 }
 
 kover {
-    engine.set(DefaultIntellijEngine)
+    coverageEngine.set(CoverageEngine.INTELLIJ)
 }
 
-koverMerged {
-    enable()
-    xmlReport {
-        onCheck.set(true)
-    }
-    htmlReport {
-        onCheck.set(true)
-    }
-    verify {
-        onCheck.set(true)
-        rule {
-            bound {
-                val minTestCoverageInPercent: String by project
-                minValue = minTestCoverageInPercent.toInt()
-                counter = CounterType.LINE
-                valueType = VerificationValueType.COVERED_PERCENTAGE
-            }
+tasks.koverMergedVerify {
+    rule {
+        bound {
+            val minTestCoverageInPercent: String by project
+            minValue = minTestCoverageInPercent.toInt()
+            valueType = VerificationValueType.COVERED_LINES_PERCENTAGE
         }
     }
 }

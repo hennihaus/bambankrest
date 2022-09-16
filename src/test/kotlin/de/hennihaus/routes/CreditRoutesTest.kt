@@ -15,7 +15,6 @@ import de.hennihaus.testutils.KtorTestBuilder.testApplicationWith
 import de.hennihaus.testutils.testClient
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -26,7 +25,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -133,16 +131,10 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.BadRequest
-            response.body<Error>() should {
-                it.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getInvalidRequestError(),
-                    property = Error::dateTime,
-                )
-                it.dateTime.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getInvalidRequestError().dateTime,
-                    property = LocalDateTime::second,
-                )
-            }
+            response.body<Error>().shouldBeEqualToIgnoringFields(
+                other = ErrorObjectMother.getInvalidRequestError(),
+                property = Error::dateTime,
+            )
             coVerifySequence {
                 creditResource.validate(
                     resource = getMinValidCreditResource(
@@ -193,16 +185,10 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.NotFound
-            response.body<Error>() should {
-                it.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getNotFoundError(),
-                    property = Error::dateTime,
-                )
-                it.dateTime.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getNotFoundError().dateTime,
-                    property = LocalDateTime::second,
-                )
-            }
+            response.body<Error>().shouldBeEqualToIgnoringFields(
+                other = ErrorObjectMother.getNotFoundError(),
+                property = Error::dateTime,
+            )
         }
 
         @Test
@@ -230,18 +216,10 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.InternalServerError
-            response.body<Error>() should {
-                it.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getInternalServerError(),
-                    property = Error::dateTime,
-                    others = arrayOf(Error::message),
-                )
-                it.message shouldBe "${IllegalStateException()}"
-                it.dateTime.shouldBeEqualToIgnoringFields(
-                    other = ErrorObjectMother.getInternalServerError().dateTime,
-                    property = LocalDateTime::second,
-                )
-            }
+            response.body<Error>().shouldBeEqualToIgnoringFields(
+                other = ErrorObjectMother.getInternalServerError(),
+                property = Error::dateTime,
+            )
         }
     }
 }

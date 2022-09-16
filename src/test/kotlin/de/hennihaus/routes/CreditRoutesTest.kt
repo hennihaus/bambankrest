@@ -4,9 +4,11 @@ import de.hennihaus.models.generated.Credit
 import de.hennihaus.models.generated.Error
 import de.hennihaus.objectmothers.CreditObjectMother.getLowestCredit
 import de.hennihaus.objectmothers.CreditObjectMother.getMinValidCreditResource
-import de.hennihaus.objectmothers.ErrorObjectMother
 import de.hennihaus.objectmothers.ErrorObjectMother.DEFAULT_INVALID_REQUEST_ERROR_MESSAGE
 import de.hennihaus.objectmothers.ErrorObjectMother.DEFAULT_NOT_FOUND_ERROR_MESSAGE
+import de.hennihaus.objectmothers.ErrorObjectMother.getInternalServerError
+import de.hennihaus.objectmothers.ErrorObjectMother.getInvalidRequestError
+import de.hennihaus.objectmothers.ErrorObjectMother.getNotFoundError
 import de.hennihaus.plugins.ValidationException
 import de.hennihaus.services.CreditService
 import de.hennihaus.services.TrackingService
@@ -15,6 +17,7 @@ import de.hennihaus.testutils.KtorTestBuilder.testApplicationWith
 import de.hennihaus.testutils.testClient
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -25,6 +28,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -131,10 +135,16 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.BadRequest
-            response.body<Error>().shouldBeEqualToIgnoringFields(
-                other = ErrorObjectMother.getInvalidRequestError(),
-                property = Error::dateTime,
-            )
+            response.body<Error>() should {
+                it.shouldBeEqualToIgnoringFields(
+                    other = getInvalidRequestError(),
+                    property = Error::dateTime,
+                )
+                it.dateTime.shouldBeEqualToIgnoringFields(
+                    other = getInvalidRequestError().dateTime,
+                    property = LocalDateTime::second,
+                )
+            }
             coVerifySequence {
                 creditResource.validate(
                     resource = getMinValidCreditResource(
@@ -185,10 +195,16 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.NotFound
-            response.body<Error>().shouldBeEqualToIgnoringFields(
-                other = ErrorObjectMother.getNotFoundError(),
-                property = Error::dateTime,
-            )
+            response.body<Error>() should {
+                it.shouldBeEqualToIgnoringFields(
+                    other = getNotFoundError(),
+                    property = Error::dateTime,
+                )
+                it.dateTime.shouldBeEqualToIgnoringFields(
+                    other = getNotFoundError().dateTime,
+                    property = LocalDateTime::second,
+                )
+            }
         }
 
         @Test
@@ -216,10 +232,16 @@ class CreditRoutesTest {
             )
 
             response shouldHaveStatus HttpStatusCode.InternalServerError
-            response.body<Error>().shouldBeEqualToIgnoringFields(
-                other = ErrorObjectMother.getInternalServerError(),
-                property = Error::dateTime,
-            )
+            response.body<Error>() should {
+                it.shouldBeEqualToIgnoringFields(
+                    other = getInternalServerError(),
+                    property = Error::dateTime,
+                )
+                it.dateTime.shouldBeEqualToIgnoringFields(
+                    other = getInternalServerError().dateTime,
+                    property = LocalDateTime::second,
+                )
+            }
         }
     }
 }

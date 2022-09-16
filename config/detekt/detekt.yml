@@ -8,7 +8,7 @@ build:
   # comments: 1
 config:
   validation: true
-  warningsAsErrors: false
+  warningsAsErrors: true
   # when writing own rules with new properties, exclude the property path e.g.: 'my_rule_set,.*>.*>[my_property]'
   excludes: ''
 
@@ -45,6 +45,7 @@ output-reports:
   # - 'TxtOutputReport'
   # - 'XmlOutputReport'
   # - 'HtmlOutputReport'
+  # - 'MdOutputReport'
 
 comments:
   active: true
@@ -61,6 +62,16 @@ comments:
   EndOfSentenceFormat:
     active: false
     endOfSentenceFormat: '([.?!][ \t\n\r\f<])|([.?!:]$)'
+  KDocReferencesNonPublicProperty:
+    active: true
+    excludes: [
+      '**/test/**',
+      '**/androidTest/**',
+      '**/commonTest/**',
+      '**/jvmTest/**',
+      '**/jsTest/**',
+      '**/iosTest/**'
+    ]
   OutdatedDocumentation:
     active: true
     matchTypeParameters: true
@@ -154,6 +165,15 @@ complexity:
   NestedBlockDepth:
     active: true
     threshold: 4
+  NestedScopeFunctions:
+    active: true
+    threshold: 1
+    functions:
+      - 'kotlin.apply'
+      - 'kotlin.run'
+      - 'kotlin.with'
+      - 'kotlin.let'
+      - 'kotlin.also'
   ReplaceSafeCallChainWithRun:
     active: true
   StringLiteralDuplication:
@@ -437,6 +457,9 @@ performance:
   active: true
   ArrayPrimitive:
     active: true
+  CouldBeSequence:
+    active: true
+    threshold: 3
   ForEachOnRange:
     active: true
     excludes: [
@@ -505,7 +528,7 @@ potential-bugs:
       - '*.CheckReturnValue'
     ignoreReturnValueAnnotations:
       - '*.CanIgnoreReturnValue'
-    ignoreFunctionCall: [ ]
+    ignoreFunctionCall: []
   ImplicitDefaultLocale:
     active: true
   ImplicitUnitReturnType:
@@ -575,6 +598,9 @@ style:
   active: true
   CanBeNonNullable:
     active: true
+  CascadingCallWrapping:
+    active: true
+    includeElvis: true
   ClassOrdering:
     active: true
   CollapsibleIfStatements:
@@ -621,6 +647,9 @@ style:
     ignorePackages:
       - '*.internal'
       - '*.internal.*'
+  ForbiddenSuppress:
+    active: true
+    rules: []
   ForbiddenVoid:
     active: true
     ignoreOverridden: false
@@ -668,11 +697,14 @@ style:
     active: false
   MandatoryBracesLoops:
     active: true
+  MaxChainedCallsOnSameLine:
+    active: true
+    maxChainedCalls: 4
   MaxLineLength:
     active: true
     maxLineLength: 120
     excludePackageStatements: false
-    excludeImportStatements: false
+    excludeImportStatements: true
     excludeCommentStatements: false
   MayBeConst:
     active: true
@@ -685,6 +717,8 @@ style:
   NewLineAtEndOfFile:
     active: true
   NoTabs:
+    active: true
+  NullableBooleanCheck:
     active: true
   ObjectLiteralToLambda:
     active: true
@@ -732,6 +766,8 @@ style:
   UnnecessaryAnnotationUseSiteTarget:
     active: true
   UnnecessaryApply:
+    active: true
+  UnnecessaryBackticks:
     active: true
   UnnecessaryFilter:
     active: true
@@ -783,6 +819,7 @@ style:
     active: true
   VarCouldBeVal:
     active: true
+    ignoreLateinitVar: false
   WildcardImport:
     active: true
     excludes: []

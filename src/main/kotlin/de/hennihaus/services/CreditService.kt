@@ -35,7 +35,7 @@ class CreditService(private val bankCall: BankCallService) {
         return creditRate.mod(other = DIVISOR_LENDING_RATE)
     }
 
-    private suspend fun String.getMinSchufaRating(): Int = bankCall.getCreditConfigByJmsQueue().let {
+    private suspend fun String.getMinSchufaRating(): Int = bankCall.getCreditConfigByBankId().let {
         uppercase().first().minus(
             other = it.minSchufaRating.name.first(),
         )

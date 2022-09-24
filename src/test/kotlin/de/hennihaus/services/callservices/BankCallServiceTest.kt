@@ -1,21 +1,25 @@
 package de.hennihaus.services.callservices
 
-import de.hennihaus.models.CreditConfiguration
-import de.hennihaus.objectmothers.BankObjectMother
+import de.hennihaus.bamdatamodel.Bank
+import de.hennihaus.bamdatamodel.CreditConfiguration
+import de.hennihaus.bamdatamodel.objectmothers.BankObjectMother.getSyncBank
 import de.hennihaus.objectmothers.ConfigurationObjectMother.getConfigBackendConfiguration
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.getCreditConfiguration
 import de.hennihaus.services.callservices.BankCallService.Companion.CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
 import de.hennihaus.services.callservices.resources.BankPaths.BANKS_PATH
-import de.hennihaus.testutils.MockEngineBuilder
+import de.hennihaus.testutils.MockEngineBuilder.getMockEngine
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.throwable.shouldHaveMessage
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,78 +28,178 @@ import org.junit.jupiter.api.Test
 
 class BankCallServiceTest {
 
+    private val config = getConfigBackendConfiguration()
+    private val defaultBankId = getSyncBank().uuid
+
+    private lateinit var engine: MockEngine
     private lateinit var classUnderTest: BankCallService
 
     @Nested
-    inner class GetCreditConfigurationByJmsQueue {
+    inner class GetBankById {
         @Test
-        fun `should return creditConfiguration and build call correctly`() = runBlocking {
-            val config = getConfigBackendConfiguration()
-            val engine = MockEngineBuilder.getMockEngine(
+        fun `should return a bank by id and build call correctly`() = runBlocking {
+            engine = getMockEngine(
                 content = Json.encodeToString(
-                    value = BankObjectMother.getSyncBank(),
+                    value = getSyncBank(),
                 ),
                 assertions = {
                     it.method shouldBe HttpMethod.Get
                     it.url shouldBe Url(
-                        urlString = """
-                            ${config.protocol}://${config.host}:${config.port}$BANKS_PATH/${config.defaultJmsQueue}
-                        """.trimIndent()
+                        urlString = buildString {
+                            append(config.protocol)
+                            append("://")
+                            append(config.host)
+                            append(":")
+                            append(config.port)
+                            append("/")
+                            append(config.apiVersion)
+                            append(BANKS_PATH)
+                            append("/")
+                            append(defaultBankId)
+                        },
                     )
                     it.headers[HttpHeaders.Accept] shouldBe "${ContentType.Application.Json}"
-                }
+                },
             )
             classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
                 engine = engine,
                 config = config,
             )
 
-            val result: CreditConfiguration = classUnderTest.getCreditConfigByJmsQueue(
-                jmsQueue = config.defaultJmsQueue,
-            )
+            val result: Bank = classUnderTest.getBankById()
 
-            result shouldBe getCreditConfiguration()
+            result shouldBe getSyncBank()
         }
 
         @Test
-        fun `should throw an exception when creditConfiguration = null`() = runBlocking {
-            val config = getConfigBackendConfiguration()
-            val engine = MockEngineBuilder.getMockEngine(
+        fun `should throw an exception and request one time when bad request error occurs`() = runBlocking {
+            var counter = 0
+            engine = getMockEngine(
+                status = HttpStatusCode.BadRequest,
+                assertions = { counter++ },
+            )
+            classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
+                engine = engine,
+                config = config,
+            )
+
+            val result = shouldThrowExactly<ClientRequestException> {
+                classUnderTest.getBankById()
+            }
+
+            result.response shouldHaveStatus HttpStatusCode.BadRequest
+            counter shouldBe 1
+        }
+
+        @Test
+        fun `should throw an exception and request three times when internal server error occurs`() = runBlocking {
+            var counter = 0
+            engine = getMockEngine(
+                status = HttpStatusCode.InternalServerError,
+                assertions = { counter++ },
+            )
+            classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
+                engine = engine,
+                config = config.copy(
+                    maxRetries = 2,
+                ),
+            )
+
+            val result = shouldThrowExactly<ServerResponseException> {
+                classUnderTest.getBankById()
+            }
+
+            result.response shouldHaveStatus HttpStatusCode.InternalServerError
+            counter shouldBe 3
+        }
+    }
+
+    @Nested
+    inner class GetCreditConfigByBankId {
+        @Test
+        fun `should return a credit configuration by bank id`() = runBlocking {
+            engine = getMockEngine(
                 content = Json.encodeToString(
-                    value = BankObjectMother.getSchufaBank(
+                    value = getSyncBank(),
+                ),
+            )
+            classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
+                engine = engine,
+                config = config,
+            )
+
+            val result: CreditConfiguration = classUnderTest.getCreditConfigByBankId()
+
+            result shouldBe getSyncBank().creditConfiguration
+        }
+
+        @Test
+        fun `should throw an exception when bank has no credit configuration`() = runBlocking {
+            engine = getMockEngine(
+                content = Json.encodeToString(
+                    value = getSyncBank(
                         creditConfiguration = null,
                     ),
                 ),
             )
             classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
                 engine = engine,
                 config = config,
             )
 
-            val result: IllegalStateException = shouldThrowExactly {
-                classUnderTest.getCreditConfigByJmsQueue()
+            val result = shouldThrowExactly<NotFoundException> {
+                classUnderTest.getCreditConfigByBankId()
             }
 
             result shouldHaveMessage CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
         }
 
         @Test
-        fun `should throw an exception and request three times when error occurs`() = runBlocking {
+        fun `should throw an exception and request one time when bad request error occurs`() = runBlocking {
             var counter = 0
-            val config = getConfigBackendConfiguration()
-            val engine = MockEngineBuilder.getMockEngine(
-                status = HttpStatusCode.InternalServerError,
+            engine = getMockEngine(
+                status = HttpStatusCode.BadRequest,
                 assertions = { counter++ },
             )
             classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
                 engine = engine,
                 config = config,
             )
 
-            shouldThrowExactly<ServerResponseException> {
-                classUnderTest.getCreditConfigByJmsQueue()
+            val result = shouldThrowExactly<ClientRequestException> {
+                classUnderTest.getCreditConfigByBankId()
             }
 
+            result.response shouldHaveStatus HttpStatusCode.BadRequest
+            counter shouldBe 1
+        }
+
+        @Test
+        fun `should throw an exception and request three times when internal server error occurs`() = runBlocking {
+            var counter = 0
+            engine = getMockEngine(
+                status = HttpStatusCode.InternalServerError,
+                assertions = { counter++ },
+            )
+            classUnderTest = BankCallService(
+                defaultBankId = "$defaultBankId",
+                engine = engine,
+                config = config.copy(
+                    maxRetries = 2,
+                ),
+            )
+
+            val result = shouldThrowExactly<ServerResponseException> {
+                classUnderTest.getCreditConfigByBankId()
+            }
+
+            result.response shouldHaveStatus HttpStatusCode.InternalServerError
             counter shouldBe 3
         }
     }

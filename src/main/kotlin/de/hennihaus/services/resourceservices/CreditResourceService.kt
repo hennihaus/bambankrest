@@ -1,6 +1,6 @@
 package de.hennihaus.services.resourceservices
 
-import de.hennihaus.models.generated.RatingLevel
+import de.hennihaus.bamdatamodel.RatingLevel
 import de.hennihaus.routes.resources.CreditResource
 import de.hennihaus.services.callservices.BankCallService
 import io.konform.validation.Constraint
@@ -14,8 +14,8 @@ import org.koin.core.annotation.Single
 @Single
 class CreditResourceService(private val bankCall: BankCallService) : ResourceService<CreditResource> {
 
-    override suspend fun resourceValidation() = bankCall.getCreditConfigByJmsQueue().let {
-        Validation<CreditResource> {
+    override suspend fun resourceValidation() = bankCall.getCreditConfigByBankId().let {
+        Validation {
             CreditResource::amountInEuros required {
                 minimum(minimumInclusive = it.minAmountInEuros)
                 maximum(maximumInclusive = it.maxAmountInEuros)

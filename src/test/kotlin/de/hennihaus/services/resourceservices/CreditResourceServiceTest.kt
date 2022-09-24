@@ -1,12 +1,13 @@
 package de.hennihaus.services.resourceservices
 
-import de.hennihaus.models.generated.RatingLevel
+import de.hennihaus.bamdatamodel.RatingLevel
+import de.hennihaus.bamdatamodel.objectmothers.BankObjectMother.getSyncBank
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MAX_AMOUNT_IN_EUROS
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MAX_TERM_IN_MONTHS
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_AMOUNT_IN_EUROS
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_TERM_IN_MONTHS
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.getCreditConfigurationWithNoEmptyFields
 import de.hennihaus.objectmothers.ConfigurationObjectMother.getConfigBackendConfiguration
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MAX_AMOUNT_IN_EUROS
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MAX_TERM_IN_MONTHS
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_AMOUNT_IN_EUROS
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_TERM_IN_MONTHS
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.getCreditConfiguration
 import de.hennihaus.objectmothers.CreditObjectMother.getMinValidCreditResource
 import de.hennihaus.plugins.ValidationException
 import de.hennihaus.routes.resources.CreditResource
@@ -27,12 +28,11 @@ import org.junit.jupiter.api.Test
 
 class CreditResourceServiceTest {
 
-    private val config = getConfigBackendConfiguration()
-
     private val bankCall = spyk(
         objToCopy = BankCallService(
+            defaultBankId = "${getSyncBank().uuid}",
             engine = CIO.create(),
-            config = config,
+            config = getConfigBackendConfiguration(),
         ),
     )
 
@@ -48,7 +48,7 @@ class CreditResourceServiceTest {
             clearAllMocks()
 
             // default behaviour
-            coEvery { bankCall.getCreditConfigByJmsQueue() } returns getCreditConfiguration()
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields()
         }
 
         @Test
@@ -59,9 +59,7 @@ class CreditResourceServiceTest {
 
             result shouldBe resource
             coVerifySequence {
-                bankCall.getCreditConfigByJmsQueue(
-                    jmsQueue = config.defaultJmsQueue,
-                )
+                bankCall.getCreditConfigByBankId()
             }
         }
 
@@ -84,9 +82,7 @@ class CreditResourceServiceTest {
 
             result shouldHaveMessage "[amountInEuros is required]"
             coVerify(exactly = 1) {
-                bankCall.getCreditConfigByJmsQueue(
-                    jmsQueue = config.defaultJmsQueue,
-                )
+                bankCall.getCreditConfigByBankId()
             }
         }
 
@@ -95,7 +91,7 @@ class CreditResourceServiceTest {
             val resource = getMinValidCreditResource(
                 amountInEuros = DEFAULT_MIN_AMOUNT_IN_EUROS.dec(),
             )
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 minAmountInEuros = DEFAULT_MIN_AMOUNT_IN_EUROS,
             )
 
@@ -111,7 +107,7 @@ class CreditResourceServiceTest {
             val resource = getMinValidCreditResource(
                 amountInEuros = DEFAULT_MAX_AMOUNT_IN_EUROS.inc(),
             )
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 maxAmountInEuros = DEFAULT_MAX_AMOUNT_IN_EUROS,
             )
 
@@ -138,7 +134,7 @@ class CreditResourceServiceTest {
             val resource = getMinValidCreditResource(
                 termInMonths = DEFAULT_MIN_TERM_IN_MONTHS.dec(),
             )
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 minTermInMonths = DEFAULT_MIN_TERM_IN_MONTHS,
             )
 
@@ -154,7 +150,7 @@ class CreditResourceServiceTest {
             val resource = getMinValidCreditResource(
                 termInMonths = DEFAULT_MAX_TERM_IN_MONTHS.inc(),
             )
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 maxTermInMonths = DEFAULT_MAX_TERM_IN_MONTHS,
             )
 
@@ -190,7 +186,7 @@ class CreditResourceServiceTest {
         @Test
         fun `should throw exception when ratingLevel too small`() = runBlocking {
             val resource = getMinValidCreditResource(ratingLevel = "${RatingLevel.A}")
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 minSchufaRating = RatingLevel.B,
             )
 
@@ -204,7 +200,7 @@ class CreditResourceServiceTest {
         @Test
         fun `should throw exception when ratingLevel too high`() = runBlocking {
             val resource = getMinValidCreditResource(ratingLevel = "${RatingLevel.P}")
-            coEvery { bankCall.getCreditConfigByJmsQueue(jmsQueue = any()) } returns getCreditConfiguration(
+            coEvery { bankCall.getCreditConfigByBankId() } returns getCreditConfigurationWithNoEmptyFields(
                 maxSchufaRating = RatingLevel.O,
             )
 

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 object BankPaths {
     const val BANKS_PATH = "/banks"
-    const val JMS_QUEUE_PATH = "/{jmsQueue}"
+    const val ID_PATH = "/{id}"
 }
 
 @Serializable
@@ -13,6 +13,6 @@ object BankPaths {
 class Banks {
 
     @Serializable
-    @Resource(BankPaths.JMS_QUEUE_PATH)
-    data class JmsQueue(val parent: Banks = Banks(), val jmsQueue: String)
+    @Resource(BankPaths.ID_PATH)
+    data class Id(val parent: Banks = Banks(), val id: String)
 }

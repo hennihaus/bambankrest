@@ -1,13 +1,10 @@
 package de.hennihaus.services.callservices
 
-import de.hennihaus.models.CreditConfiguration
-import de.hennihaus.objectmothers.ConfigBackendObjectMother.BANK_JMS_QUEUE_WITHOUT_CREDIT_CONFIGURATION
-import de.hennihaus.objectmothers.ConfigBackendObjectMother.BANK_JMS_QUEUE_WITH_CREDIT_CONFIGURATION
+import de.hennihaus.bamdatamodel.Bank
+import de.hennihaus.bamdatamodel.CreditConfiguration
+import de.hennihaus.configurations.Configuration.BANK_UUID
 import de.hennihaus.plugins.initKoin
-import de.hennihaus.services.callservices.BankCallService.Companion.CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.throwable.shouldHaveMessage
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Disabled
@@ -19,6 +16,7 @@ import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
+import java.util.UUID
 
 @Disabled(value = "until dev cluster is available")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -37,29 +35,30 @@ class BankCallServiceIntegrationTest : KoinTest {
     fun cleanUp() = stopKoin()
 
     @Nested
-    inner class GetCreditConfigurationByJmsQueue {
+    inner class GetBankById {
         @Test
-        fun `should return a credit configuration when jmsQueue is available`() = runBlocking<Unit> {
-            val jmsQueue = BANK_JMS_QUEUE_WITH_CREDIT_CONFIGURATION
+        fun `should return a bank by id`() = runBlocking<Unit> {
+            val id = UUID.fromString(getKoin().getProperty(key = BANK_UUID))
 
-            val result: CreditConfiguration = classUnderTest.getCreditConfigByJmsQueue(
-                jmsQueue = jmsQueue,
+            val result: Bank = classUnderTest.getBankById(
+                id = id,
             )
 
             result.shouldNotBeNull()
         }
+    }
 
+    @Nested
+    inner class GetCreditConfigByBankId {
         @Test
-        fun `should throw exception when credit configuration is null`() = runBlocking {
-            val jmsQueue = BANK_JMS_QUEUE_WITHOUT_CREDIT_CONFIGURATION
+        fun `should return a credit configuration by id`() = runBlocking<Unit> {
+            val id = UUID.fromString(getKoin().getProperty(key = BANK_UUID))
 
-            val result: IllegalStateException = shouldThrowExactly {
-                classUnderTest.getCreditConfigByJmsQueue(
-                    jmsQueue = jmsQueue,
-                )
-            }
+            val result: CreditConfiguration = classUnderTest.getCreditConfigByBankId(
+                id = id,
+            )
 
-            result shouldHaveMessage CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
+            result.shouldNotBeNull()
         }
     }
 }

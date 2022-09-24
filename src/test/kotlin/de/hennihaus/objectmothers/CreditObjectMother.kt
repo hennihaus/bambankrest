@@ -1,12 +1,11 @@
 package de.hennihaus.objectmothers
 
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_AMOUNT_IN_EUROS
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_SCHUFA_RATING
+import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_TERM_IN_MONTHS
+import de.hennihaus.bamdatamodel.objectmothers.TeamObjectMother.DEFAULT_PASSWORD
+import de.hennihaus.bamdatamodel.objectmothers.TeamObjectMother.FIRST_TEAM_USERNAME
 import de.hennihaus.models.generated.Credit
-import de.hennihaus.models.generated.RatingLevel
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_AMOUNT_IN_EUROS
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_SCHUFA_RATING
-import de.hennihaus.objectmothers.CreditConfigurationObjectMother.DEFAULT_MIN_TERM_IN_MONTHS
-import de.hennihaus.objectmothers.GroupObjectMother.DEFAULT_PASSWORD
-import de.hennihaus.objectmothers.GroupObjectMother.FIRST_GROUP_USERNAME
 import de.hennihaus.routes.resources.CreditResource
 
 object CreditObjectMother {
@@ -31,9 +30,9 @@ object CreditObjectMother {
     fun getMinValidCreditResource(
         amountInEuros: Int? = DEFAULT_MIN_AMOUNT_IN_EUROS,
         termInMonths: Int? = DEFAULT_MIN_TERM_IN_MONTHS,
-        ratingLevel: String? = RatingLevel.valueOf(value = DEFAULT_MIN_SCHUFA_RATING).name,
+        ratingLevel: String? = DEFAULT_MIN_SCHUFA_RATING.name,
         delayInMilliseconds: Long? = DEFAULT_DELAY_IN_MILLISECONDS,
-        username: String? = FIRST_GROUP_USERNAME,
+        username: String? = FIRST_TEAM_USERNAME,
         password: String? = DEFAULT_PASSWORD,
     ) = CreditResource(
         amountInEuros = amountInEuros,

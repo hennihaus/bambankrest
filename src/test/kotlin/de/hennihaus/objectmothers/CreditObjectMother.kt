@@ -6,7 +6,7 @@ import de.hennihaus.bamdatamodel.objectmothers.CreditConfigurationObjectMother.D
 import de.hennihaus.bamdatamodel.objectmothers.TeamObjectMother.DEFAULT_PASSWORD
 import de.hennihaus.bamdatamodel.objectmothers.TeamObjectMother.FIRST_TEAM_USERNAME
 import de.hennihaus.models.generated.Credit
-import de.hennihaus.routes.resources.CreditResource
+import de.hennihaus.services.validationservices.resources.CreditResource
 
 object CreditObjectMother {
 
@@ -28,10 +28,10 @@ object CreditObjectMother {
     )
 
     fun getMinValidCreditResource(
-        amountInEuros: Int? = DEFAULT_MIN_AMOUNT_IN_EUROS,
-        termInMonths: Int? = DEFAULT_MIN_TERM_IN_MONTHS,
+        amountInEuros: String? = "$DEFAULT_MIN_AMOUNT_IN_EUROS",
+        termInMonths: String? = "$DEFAULT_MIN_TERM_IN_MONTHS",
         ratingLevel: String? = DEFAULT_MIN_SCHUFA_RATING.name,
-        delayInMilliseconds: Long? = DEFAULT_DELAY_IN_MILLISECONDS,
+        delayInMilliseconds: String? = "$DEFAULT_DELAY_IN_MILLISECONDS",
         username: String? = FIRST_TEAM_USERNAME,
         password: String? = DEFAULT_PASSWORD,
     ) = CreditResource(

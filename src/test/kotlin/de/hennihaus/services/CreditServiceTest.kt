@@ -131,8 +131,8 @@ class CreditServiceTest {
 
             val time = measureTimeMillis {
                 classUnderTest.calculateCredit(
-                    amountInEuros = amountInEuros!!,
-                    termInMonths = termInMonths!!,
+                    amountInEuros = amountInEuros!!.toInt(),
+                    termInMonths = termInMonths!!.toInt(),
                     ratingLevel = ratingLevel!!,
                     delayInMilliseconds = delayInMilliseconds,
                 )
@@ -149,8 +149,8 @@ class CreditServiceTest {
 
             val time = measureTimeMillis {
                 classUnderTest.calculateCredit(
-                    amountInEuros = amountInEuros!!,
-                    termInMonths = termInMonths!!,
+                    amountInEuros = amountInEuros!!.toInt(),
+                    termInMonths = termInMonths!!.toInt(),
                     ratingLevel = ratingLevel!!,
                     delayInMilliseconds = delayInMilliseconds,
                 )
@@ -167,8 +167,8 @@ class CreditServiceTest {
 
             val time = measureTimeMillis {
                 classUnderTest.calculateCredit(
-                    amountInEuros = amountInEuros!!,
-                    termInMonths = termInMonths!!,
+                    amountInEuros = amountInEuros!!.toInt(),
+                    termInMonths = termInMonths!!.toInt(),
                     ratingLevel = ratingLevel!!,
                     delayInMilliseconds = delayInMilliseconds,
                 )

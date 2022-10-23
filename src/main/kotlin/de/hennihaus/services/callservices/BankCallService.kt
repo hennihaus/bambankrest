@@ -4,7 +4,7 @@ import de.hennihaus.bamdatamodel.Bank
 import de.hennihaus.bamdatamodel.CreditConfiguration
 import de.hennihaus.configurations.ConfigBackendConfiguration
 import de.hennihaus.configurations.Configuration.BANK_UUID
-import de.hennihaus.services.callservices.resources.Banks
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.BANKS_PATH
 import de.hennihaus.utils.configureDefaultRequests
 import de.hennihaus.utils.configureMonitoring
 import de.hennihaus.utils.configureRetryBehavior
@@ -12,7 +12,8 @@ import de.hennihaus.utils.configureSerialization
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.resources.get
+import io.ktor.client.request.get
+import io.ktor.http.appendPathSegments
 import io.ktor.server.plugins.NotFoundException
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
@@ -41,26 +42,36 @@ class BankCallService(
     }
 
     suspend fun getBankById(id: UUID = UUID.fromString(defaultBankId)): Bank {
-        val response = client.get(
-            resource = Banks.Id(
-                id = "$id",
-            ),
-        )
+        val response = client.get {
+            url {
+                appendPathSegments(
+                    segments = listOf(
+                        BANKS_PATH,
+                        "$id",
+                    ),
+                )
+            }
+        }
         return response.body()
     }
 
     suspend fun getCreditConfigByBankId(id: UUID = UUID.fromString(defaultBankId)): CreditConfiguration {
-        val response = client.get(
-            resource = Banks.Id(
-                id = "$id",
-            ),
-        )
+        val response = client.get {
+            url {
+                appendPathSegments(
+                    segments = listOf(
+                        BANKS_PATH,
+                        "$id",
+                    ),
+                )
+            }
+        }
         return response.body<Bank>().creditConfiguration ?: throw NotFoundException(
             message = CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE,
         )
     }
 
     companion object {
-        const val CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE = "[creditConfiguration not found]"
+        const val CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE = "creditConfiguration not found"
     }
 }

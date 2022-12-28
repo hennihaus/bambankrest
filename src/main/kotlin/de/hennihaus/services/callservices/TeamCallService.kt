@@ -1,10 +1,11 @@
 package de.hennihaus.services.callservices
 
-import de.hennihaus.bamdatamodel.Bank
-import de.hennihaus.bamdatamodel.CreditConfiguration
+import de.hennihaus.bamdatamodel.Team
 import de.hennihaus.configurations.ConfigBackendConfiguration
-import de.hennihaus.configurations.Configuration.BANK_UUID
-import de.hennihaus.services.callservices.paths.ConfigBackendPaths.BANKS_PATH
+import de.hennihaus.models.TeamPagination
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.PASSWORD_QUERY_PARAMETER
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.TEAMS_PATH
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.USERNAME_QUERY_PARAMETER
 import de.hennihaus.utils.configureDefaultRequests
 import de.hennihaus.utils.configureMonitoring
 import de.hennihaus.utils.configureRetryBehavior
@@ -14,18 +15,13 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.request.get
 import io.ktor.http.appendPathSegments
-import io.ktor.server.plugins.NotFoundException
-import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
-import java.util.UUID
 
 @Single
-class BankCallService(
-    @Property(BANK_UUID) private val defaultBankId: String,
+class TeamCallService(
     private val engine: HttpClientEngine,
     private val config: ConfigBackendConfiguration,
 ) {
-
     private val client = HttpClient(engine = engine) {
         expectSuccess = true
         configureMonitoring()
@@ -41,23 +37,15 @@ class BankCallService(
         )
     }
 
-    suspend fun getCreditConfigByBankId(id: UUID = UUID.fromString(defaultBankId)): CreditConfiguration {
+    suspend fun getTeams(username: String, password: String): List<Team> {
         val response = client.get {
             url {
-                appendPathSegments(
-                    segments = listOf(
-                        BANKS_PATH,
-                        "$id",
-                    ),
-                )
+                appendPathSegments(segments = listOf(TEAMS_PATH))
+
+                parameters.append(name = USERNAME_QUERY_PARAMETER, value = username)
+                parameters.append(name = PASSWORD_QUERY_PARAMETER, value = password)
             }
         }
-        return response.body<Bank>().creditConfiguration ?: throw NotFoundException(
-            message = CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE,
-        )
-    }
-
-    companion object {
-        const val CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE = "creditConfiguration not found"
+        return response.body<TeamPagination>().items
     }
 }

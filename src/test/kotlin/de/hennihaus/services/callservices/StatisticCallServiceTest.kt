@@ -1,12 +1,12 @@
 package de.hennihaus.services.callservices
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.hennihaus.bamdatamodel.Statistic
 import de.hennihaus.bamdatamodel.objectmothers.StatisticObjectMother.getFirstTeamAsyncBankStatistic
 import de.hennihaus.objectmothers.ConfigurationObjectMother.getConfigBackendConfiguration
 import de.hennihaus.services.callservices.paths.ConfigBackendPaths.INCREMENT_PATH
 import de.hennihaus.services.callservices.paths.ConfigBackendPaths.STATISTICS_PATH
 import de.hennihaus.testutils.MockEngineBuilder.getMockEngine
+import de.hennihaus.testutils.bamObjectMapper
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
@@ -36,7 +36,7 @@ class StatisticCallServiceTest {
         fun `should increment and return a statistic and build call correctly`() = runBlocking {
             val teamId = getFirstTeamAsyncBankStatistic().teamId
             engine = getMockEngine(
-                content = jacksonObjectMapper().writeValueAsString(getFirstTeamAsyncBankStatistic(requestsCount = 1L)),
+                content = bamObjectMapper().writeValueAsString(getFirstTeamAsyncBankStatistic(requestsCount = 1L)),
                 assertions = {
                     it.method shouldBe HttpMethod.Patch
                     it.url shouldBe Url(

@@ -1,16 +1,18 @@
 package de.hennihaus.services.callservices
 
-import de.hennihaus.bamdatamodel.CreditConfiguration
-import de.hennihaus.bamdatamodel.objectmothers.BankObjectMother.getSyncBank
+import de.hennihaus.bamdatamodel.Team
+import de.hennihaus.bamdatamodel.objectmothers.TeamObjectMother.getFirstTeam
 import de.hennihaus.objectmothers.ConfigurationObjectMother.getConfigBackendConfiguration
-import de.hennihaus.services.callservices.BankCallService.Companion.CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
-import de.hennihaus.services.callservices.paths.ConfigBackendPaths.BANKS_PATH
+import de.hennihaus.objectmothers.TeamPaginationObjectMother.getDefaultTeamPagination
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.PASSWORD_QUERY_PARAMETER
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.TEAMS_PATH
+import de.hennihaus.services.callservices.paths.ConfigBackendPaths.USERNAME_QUERY_PARAMETER
 import de.hennihaus.testutils.MockEngineBuilder.getMockEngine
 import de.hennihaus.testutils.bamObjectMapper
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.throwable.shouldHaveMessage
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
@@ -19,25 +21,24 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
-import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class BankCallServiceTest {
+class TeamCallServiceTest {
 
     private val config = getConfigBackendConfiguration()
-    private val defaultBankId = getSyncBank().uuid
 
     private lateinit var engine: MockEngine
-    private lateinit var classUnderTest: BankCallService
+    private lateinit var classUnderTest: TeamCallService
 
     @Nested
-    inner class GetCreditConfigByBankId {
+    inner class GetTeams {
         @Test
-        fun `should return a credit configuration by bank id and build call correctly`() = runBlocking {
+        fun `should return teams and build call correctly`() = runBlocking {
+            val (_, _, username, password) = getFirstTeam()
             engine = getMockEngine(
-                content = bamObjectMapper().writeValueAsString(getSyncBank()),
+                content = bamObjectMapper().writeValueAsString(getDefaultTeamPagination()),
                 assertions = {
                     it.method shouldBe HttpMethod.Get
                     it.url shouldBe Url(
@@ -50,58 +51,51 @@ class BankCallServiceTest {
                             append("/")
                             append(config.apiVersion)
                             append("/")
-                            append(BANKS_PATH)
-                            append("/")
-                            append(defaultBankId)
+                            append(TEAMS_PATH)
+                            append("?")
+                            append(USERNAME_QUERY_PARAMETER)
+                            append("=")
+                            append(username)
+                            append("&")
+                            append(PASSWORD_QUERY_PARAMETER)
+                            append("=")
+                            append(password)
                         },
                     )
                     it.headers[HttpHeaders.Accept] shouldBe "${ContentType.Application.Json}"
                 },
             )
-            classUnderTest = BankCallService(
-                defaultBankId = "$defaultBankId",
+            classUnderTest = TeamCallService(
                 engine = engine,
                 config = config,
             )
 
-            val result: CreditConfiguration = classUnderTest.getCreditConfigByBankId()
-
-            result shouldBe getSyncBank().creditConfiguration
-        }
-
-        @Test
-        fun `should throw an exception when bank has no credit configuration`() = runBlocking {
-            engine = getMockEngine(
-                content = bamObjectMapper().writeValueAsString(getSyncBank(creditConfiguration = null)),
-            )
-            classUnderTest = BankCallService(
-                defaultBankId = "$defaultBankId",
-                engine = engine,
-                config = config,
+            val result: List<Team> = classUnderTest.getTeams(
+                username = username,
+                password = password,
             )
 
-            val result = shouldThrowExactly<NotFoundException> {
-                classUnderTest.getCreditConfigByBankId()
-            }
-
-            result shouldHaveMessage CREDIT_CONFIGURATION_NOT_FOUND_MESSAGE
+            result shouldContainExactly getDefaultTeamPagination().items
         }
 
         @Test
         fun `should throw an exception and request one time when bad request error occurs`() = runBlocking {
+            val (_, _, username, password) = getFirstTeam()
             var counter = 0
             engine = getMockEngine(
                 status = HttpStatusCode.BadRequest,
                 assertions = { counter++ },
             )
-            classUnderTest = BankCallService(
-                defaultBankId = "$defaultBankId",
+            classUnderTest = TeamCallService(
                 engine = engine,
                 config = config,
             )
 
             val result = shouldThrowExactly<ClientRequestException> {
-                classUnderTest.getCreditConfigByBankId()
+                classUnderTest.getTeams(
+                    username = username,
+                    password = password,
+                )
             }
 
             result.response shouldHaveStatus HttpStatusCode.BadRequest
@@ -110,13 +104,13 @@ class BankCallServiceTest {
 
         @Test
         fun `should throw an exception and request three times when internal server error occurs`() = runBlocking {
+            val (_, _, username, password) = getFirstTeam()
             var counter = 0
             engine = getMockEngine(
                 status = HttpStatusCode.InternalServerError,
                 assertions = { counter++ },
             )
-            classUnderTest = BankCallService(
-                defaultBankId = "$defaultBankId",
+            classUnderTest = TeamCallService(
                 engine = engine,
                 config = config.copy(
                     maxRetries = 2,
@@ -124,7 +118,10 @@ class BankCallServiceTest {
             )
 
             val result = shouldThrowExactly<ServerResponseException> {
-                classUnderTest.getCreditConfigByBankId()
+                classUnderTest.getTeams(
+                    username = username,
+                    password = password,
+                )
             }
 
             result.response shouldHaveStatus HttpStatusCode.InternalServerError

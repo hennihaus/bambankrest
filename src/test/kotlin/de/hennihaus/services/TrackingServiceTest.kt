@@ -48,7 +48,7 @@ class TrackingServiceTest {
     @Nested
     inner class TrackRequest {
         @Test
-        fun `should increment statistic with teamId when regular team is available and origin not set`() = runBlocking {
+        fun `should increment statistic when regular team is available and origin not set`() = runBlocking {
             val (teamId, _, username, password) = getFirstTeam(type = TeamType.REGULAR)
             coEvery { teamCall.getTeams(username = any(), password = any()) } returns listOf(
                 getFirstTeam(),

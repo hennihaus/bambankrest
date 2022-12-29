@@ -1,6 +1,7 @@
 package de.hennihaus.routes
 
 import de.hennihaus.routes.CreditRoutes.AMOUNT_IN_EUROS_QUERY_PARAMETER
+import de.hennihaus.routes.CreditRoutes.BAM_ORIGIN_HEADER
 import de.hennihaus.routes.CreditRoutes.CREDIT_PATH
 import de.hennihaus.routes.CreditRoutes.DELAY_IN_MILLISECONDS_QUERY_PARAMETER
 import de.hennihaus.routes.CreditRoutes.PASSWORD_QUERY_PARAMETER
@@ -25,6 +26,8 @@ object CreditRoutes {
     const val DELAY_IN_MILLISECONDS_QUERY_PARAMETER = "delayInMilliseconds"
     const val USERNAME_QUERY_PARAMETER = "username"
     const val PASSWORD_QUERY_PARAMETER = "password"
+
+    const val BAM_ORIGIN_HEADER = "X-BAM-Origin"
 }
 
 fun Route.registerCreditRoutes() {
@@ -42,6 +45,7 @@ private fun Route.getCredit() = get(path = "/$CREDIT_PATH") {
         val delayInMilliseconds = request.queryParameters.getOrFail(name = DELAY_IN_MILLISECONDS_QUERY_PARAMETER)
         val username = request.queryParameters.getOrFail(name = USERNAME_QUERY_PARAMETER)
         val password = request.queryParameters.getOrFail(name = PASSWORD_QUERY_PARAMETER)
+        val origin = request.headers.get(name = BAM_ORIGIN_HEADER)
 
         val lendingRate = credit.calculateCredit(
             amountInEuros = amountInEuros.toInt(),
@@ -55,6 +59,7 @@ private fun Route.getCredit() = get(path = "/$CREDIT_PATH") {
                 tracking.trackRequest(
                     username = username,
                     password = password,
+                    origin = origin,
                 )
             }
         )

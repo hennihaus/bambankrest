@@ -10,6 +10,7 @@ import de.hennihaus.objectmothers.ErrorsObjectMother.getMissingParameterErrors
 import de.hennihaus.objectmothers.ErrorsObjectMother.getNotFoundErrors
 import de.hennihaus.objectmothers.ReasonObjectMother.DEFAULT_INVALID_REQUEST_MESSAGE
 import de.hennihaus.plugins.RequestValidationException
+import de.hennihaus.routes.CreditRoutes.BAM_ORIGIN_HEADER
 import de.hennihaus.services.CreditService
 import de.hennihaus.services.TrackingService
 import de.hennihaus.services.TrackingService.Companion.TEAM_NOT_FOUND_MESSAGE
@@ -20,6 +21,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.clearAllMocks
@@ -61,7 +63,7 @@ class CreditRoutesTest {
         fun init() {
             // default behaviour
             coEvery { creditValidation.validateUrl(resource = any()) } returns Unit
-            coEvery { tracking.trackRequest(username = any(), password = any()) } returns Unit
+            coEvery { tracking.trackRequest(username = any(), password = any(), origin = any()) } returns Unit
             coEvery {
                 credit.calculateCredit(
                     amountInEuros = any(),
@@ -82,6 +84,7 @@ class CreditRoutesTest {
                 username,
                 password,
             ) = getMinValidCreditResource()
+            val header = "https://hennihaus.github.io"
 
             val response = testClient.get(
                 urlString = """
@@ -94,7 +97,11 @@ class CreditRoutesTest {
                     &username=$username
                     &password=$password
                 """.trimIndent().replace("\n", "")
-            )
+            ) {
+                headers {
+                    append(name = BAM_ORIGIN_HEADER, value = header)
+                }
+            }
 
             response shouldHaveStatus HttpStatusCode.OK
             response.body<Credit>() shouldBe getLowestCredit()
@@ -111,6 +118,7 @@ class CreditRoutesTest {
                 tracking.trackRequest(
                     username = username!!,
                     password = password!!,
+                    origin = header,
                 )
             }
         }
@@ -157,6 +165,7 @@ class CreditRoutesTest {
                 tracking.trackRequest(
                     username = any(),
                     password = any(),
+                    origin = any(),
                 )
             }
         }
@@ -191,7 +200,13 @@ class CreditRoutesTest {
                 username,
                 password,
             ) = getMinValidCreditResource()
-            coEvery { tracking.trackRequest(username = any(), password = any()) } throws NotFoundException(
+            coEvery {
+                tracking.trackRequest(
+                    username = any(),
+                    password = any(),
+                    origin = any()
+                )
+            } throws NotFoundException(
                 message = TEAM_NOT_FOUND_MESSAGE,
             )
 
@@ -222,7 +237,13 @@ class CreditRoutesTest {
                 username,
                 password,
             ) = getMinValidCreditResource()
-            coEvery { tracking.trackRequest(username = any(), password = any()) } throws IllegalStateException()
+            coEvery {
+                tracking.trackRequest(
+                    username = any(),
+                    password = any(),
+                    origin = any()
+                )
+            } throws IllegalStateException()
 
             val response = testClient.get(
                 urlString = """

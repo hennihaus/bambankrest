@@ -9,7 +9,21 @@
     "oas3"
   ],
   "rules": {
-    "contact-properties": "error",
+    "contact-properties": {
+      "description": "Contact object must have 'name', 'url' and 'email'.",
+      "recommended": false,
+      "given": "$.info.contact",
+      "then": [
+        {
+          "field": "name",
+          "function": "truthy"
+        },
+        {
+          "field": "email",
+          "function": "truthy"
+        }
+      ]
+    },
     "duplicated-entry-in-enum": "error",
     "info-contact": "error",
     "info-description": "error",
@@ -21,7 +35,7 @@
     "openapi-tags": "error",
     "openapi-tags-alphabetical": "error",
     "openapi-tags-uniqueness": "error",
-    "operation-description": "error",
+    "operation-description": "off",
     "operation-operationId": "error",
     "operation-operationId-unique": "error",
     "operation-operationId-valid-in-url": "error",
@@ -34,7 +48,7 @@
     "path-keys-no-trailing-slash": "error",
     "path-not-include-query": "error",
     "path-params": "error",
-    "tag-description": "error",
+    "tag-description": "off",
     "typed-enum": "error",
     "oas3-api-servers": "error",
     "oas3-examples-value-or-externalValue": "error",

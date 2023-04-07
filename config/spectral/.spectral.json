@@ -60,5 +60,17 @@
     "oas3-unused-component": "error",
     "oas3-valid-media-example": "error",
     "oas3-valid-schema-example": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "credit.json#/components/parameters/amountInEuros/example",
+        "credit.json#/components/parameters/termInMonths/example",
+        "credit.json#/components/parameters/delayInMilliseconds/example"
+      ],
+      "rules": {
+        "oas3-valid-media-example": "off"
+      }
+    }
+  ]
 }

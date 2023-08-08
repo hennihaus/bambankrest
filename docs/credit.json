@@ -1,37 +1,34 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "BAM Business Integration - Deutsche Bank",
+    "title": "BAM Business Integration - Schufa-Auskunft",
     "contact": {
       "name": "Jan-Hendrik Hausner",
       "email": "jan-hendrik.hausner@outlook.com"
     },
-    "description": "<p>Um einen rudimentären LoanBroker zu ermöglichen, wurde eine Bank implementiert, die synchrone Aufrufe bearbeitet. Dieser Service ist als REST-Service erreichbar. An die Bank kann eine Kreditanfrage gestellt werden. Die benötigten Parameter entnehmen Sie der Parameterliste. Nicht alle Kreditanfragen werden von der Bank akzeptiert. Die Kreditrahmenbedinungen entnehmen Sie aus der Bankbeschreibung. Der Rückgabewert der Bank entspricht einem Zinsatz für den gewünschten Kredit (\\\"lendingRate\\\" als double zwischen 0 und 10%).</p>",
+    "description": "<p>Schufa-Auskunft-Beschreibung (\"1. Integrationsschritt\")</p>",
     "license": {
       "name": "Apache 2.0",
-      "url": "https://github.com/hennihaus/bambankrest/blob/master/LICENSE"
+      "url": "https://github.com/hennihaus/bamschufarest/blob/master/LICENSE"
     },
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://bambusinessintegration.wi.hs-furtwangen.de/deutschebank",
+      "url": "https://bambusinessintegration.wi.hs-furtwangen.de/schufa",
       "description": "Base-URL"
     }
   ],
   "paths": {
-    "/credit": {
+    "/rating": {
       "get": {
         "tags": [
-          "Credit"
+          "Rating"
         ],
-        "operationId": "getCredit",
+        "operationId": "getRating",
         "parameters": [
           {
-            "$ref": "#/components/parameters/amountInEuros"
-          },
-          {
-            "$ref": "#/components/parameters/termInMonths"
+            "$ref": "#/components/parameters/socialSecurityNumber"
           },
           {
             "$ref": "#/components/parameters/ratingLevel"
@@ -65,35 +62,20 @@
   },
   "tags": [
     {
-      "name": "Credit"
+      "name": "Rating"
     }
   ],
   "components": {
     "parameters": {
-      "amountInEuros": {
-        "name": "amountInEuros",
-        "description": "Gewünschte Höhe des Kredites in Euro",
+      "socialSecurityNumber": {
+        "name": "socialSecurityNumber",
+        "description": "Zufällige Sozialversicherungsnummer",
         "in": "query",
         "required": true,
-        "example": "30000",
+        "example": "12123456M123",
         "schema": {
-          "type": "integer",
-          "format": "int32",
-          "minimum": 10000,
-          "maximum": 50000
-        }
-      },
-      "termInMonths": {
-        "name": "termInMonths",
-        "description": "Gewünschte Länge des Kredites in Monaten",
-        "in": "query",
-        "required": true,
-        "example": "21",
-        "schema": {
-          "type": "integer",
-          "format": "int32",
-          "minimum": 6,
-          "maximum": 36
+          "type": "string",
+          "minLength": 1
         }
       },
       "ratingLevel": {
@@ -146,14 +128,15 @@
     },
     "responses": {
       "200": {
-        "description": "Kreditzins in Prozent",
+        "description": "Schufa-Score des Debitors",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Credit"
+              "$ref": "#/components/schemas/Rating"
             },
             "example": {
-              "lendingRateInPercent": 3.8
+              "score": 9858,
+              "failureRiskInPercent": 0.77
             }
           }
         }
@@ -237,17 +220,24 @@
           "P"
         ]
       },
-      "Credit": {
+      "Rating": {
         "type": "object",
         "required": [
-          "lendingRateInPercent"
+          "score",
+          "failureRiskInPercent"
         ],
         "properties": {
-          "lendingRateInPercent": {
+          "score": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 9999
+          },
+          "failureRiskInPercent": {
             "type": "number",
             "format": "double",
-            "minimum": 0,
-            "maximum": 10
+            "minimum": 0.77,
+            "maximum": 98.07
           }
         }
       },

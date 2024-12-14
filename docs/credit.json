@@ -75,11 +75,11 @@
         "description": "Gewünschte Höhe des Kredites in Euro",
         "in": "query",
         "required": true,
-        "example": "30000",
+        "example": "30500",
         "schema": {
           "type": "integer",
           "format": "int32",
-          "minimum": 10000,
+          "minimum": 11000,
           "maximum": 50000
         }
       },

@@ -6,7 +6,7 @@
       "name": "Jan-Hendrik Hausner",
       "email": "jan-hendrik.hausner@outlook.com"
     },
-    "description": "<p>Um einen <strong>rudimentären </strong>LoanBroker zu ermöglichen, wurde eine Bank implementiert, die synchrone Aufrufe bearbeitet. Diese kann wie die Schufa über REST aufgerufen werden. An die Bank kann eine Kreditanfrage gestellt werden. Die benötigten Parameter entnehmen Sie der Parameterliste. Nicht alle Kreditanfragen werden von der Bank akzeptiert. Die Kreditrahmenbedinungen entnehmen Sie aus der Bankbeschreibung. Der Rückgabewert der <strong>Bank </strong>entspricht einem Zinsatz <i>für </i>den gewünschten Kredit (\\lendingRate\\ als double zwischen 0 und 10%).</p><p>&nbsp;</p><ol><li>4324234</li><li>3423432423</li></ol><p>&nbsp;</p>",
+    "description": "<p>Um einen rudimentären LoanBroker zu ermöglichen, wurde eine Bank implementiert, die synchrone Aufrufe bearbeitet. Diese kann wie die Schufa über REST aufgerufen werden. An die Bank kann eine Kreditanfrage gestellt werden. Die benötigten Parameter entnehmen Sie der Parameterliste. Nicht alle Kreditanfragen werden von der Bank akzeptiert. Die Kreditrahmenbedinungen entnehmen Sie aus der Bankbeschreibung. Der Rückgabewert der Bank entspricht einem Zinsatz für den gewünschten Kredit (\\lendingRate\\ als double zwischen 0 und 10%).</p>",
     "license": {
       "name": "Apache 2.0",
       "url": "https://github.com/hennihaus/bambankrest/blob/master/LICENSE"
